@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://kit.fontawesome.com/ce5b206308.js" crossorigin="anonymous"></script>
+    <title>Students</title>
+</head>
+
+<body>
+    <h2>Students Table</h2>
+    <table id="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>City</th>
+                <th>Birth</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><input id="id" hidden type="text"></td>
+                <td><input id="name" type="text"></td>
+                <td><input id="city" type="text"></td>
+                <td><input id="birth" type="number"></td>
+                <td><button id="add" onclick="add_student()">Add Student</button></td>
+            </tr>
+        </tfoot>
+    </table><br>
+    <button onclick="deletetable()">Delete Table</button>
+    <button onclick="createTable()">create table</button>
+
+    <div class="form_container">
+        <form id="edit_form">
+            <h2 style="color:rgb(25, 124, 119) ;">Edit Student:</h2>
+            <input type="number" hidden class="id">
+            Name: <input type="text" class="name"><br><br>
+            City: <input type="text" class="city"><br><br>
+            Birth: <input type="number" class="birth"><br><br>
+            <button id="edit_btn" type="button" onclick="edit()">Edit</button>
+        </form>
+    </div>
+
+    <script>
+       
+        function createTable() {
+            fetch(`/api/create_table`, { method: 'POST' })
+                .then(() => {
+                    fetch('/api/5.students_created', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(() => { refresh(), location.reload(true) })
+                })
+        }
+        document.addEventListener('DOMContentLoaded', refresh);
+
+        function refresh() {
+
+            fetch("/api/students")
+                .then(response => {
+                    return response.json()
+                })
+                .then(students => {
+                    console.log(students)
+                    const tbody = document.getElementById("table").getElementsByTagName("tbody")[0]
+
+                    students.forEach(student => {
+                        const row = tbody.insertRow();
+                        row.insertCell().innerHTML = student.id;
+                        row.insertCell().innerHTML = `${student.name}`;
+                        row.insertCell().innerHTML = `${student.city}`;
+                        row.insertCell().innerHTML = `${student.birth}`;
+                        let deletestudent = row.insertCell()
+                        deletestudent.innerHTML = `<button class="delete" onclick="deleteUser('${student.id}')">delete</button>&nbsp;
+                        <button class="edit" onclick="show('${student.id}')">patch</button>`
+                    });
+                })
+        }
+        function deleteUser(studentId) {
+            fetch(`/api/students/${studentId}`, { method: 'DELETE' })
+                .then(() => { location.reload(true), refresh() })
+        }
+        function deletetable() {
+            fetch(`/api/delete_table`, { method: 'DELETE' })
+                .then(() => { return console.log("table deleted") })
+        }
+
+        function add_student() {
+            const new_students = {
+                id: document.getElementById("id").value,
+                name: document.getElementById("name").value,
+                city: document.getElementById("city").value,
+                birth: document.getElementById("birth").value,
+            }
+            fetch('/api/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(new_students)
+            })
+                .then(response => response.json())
+                .then(() => {
+                    location.reload(true)
+                    refresh();
+                })
+        }
+
+        function show(studentId) {
+            //document.querySelector(".form_container").style.display = "flex"
+            console.log(studentId);
+            fetch(`/api/students`)
+                .then(response => response.json())
+                .then(students => {
+                    console.log(students);
+                    const arr = students.find(student => student.id == studentId)
+                    console.log(arr);
+                    document.querySelector(".id").value = arr.id
+                    document.querySelector(".name").value = arr.name
+                    document.querySelector(".city").value = arr.city
+                    document.querySelector(".birth").value = arr.birth
+                })
+        }
+
+        function edit() {
+            const new_user = {
+                id: document.querySelector('.id').value,
+                name: document.querySelector('.name').value,
+                city: document.querySelector('.city').value,
+                birth: document.querySelector('.birth').value,
+            }
+            if (new_user.id == '') {
+                delete new_user.id
+            }
+            if (new_user.name == '') {
+                delete new_user.name
+            }
+            if (new_user.city == '') {
+                delete new_user.city
+            }
+            if (new_user.birth == '') {
+                delete new_user.birth
+            }
+
+            const send_details = {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(new_user)
+            }
+            fetch(`/api/students/${new_user.id}`, send_details)
+                .then(response => response.json())
+                .then(() => { location.reload()})
+        }
+
+    </script>
+</body>
+
+</html>
