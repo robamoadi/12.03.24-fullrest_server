@@ -52,9 +52,10 @@
                 .then(() => {
                     fetch('/api/5.students_created', { method: 'POST' })
                         .then(response => response.json())
-                        .then(() => { refresh(), location.reload(true) })
+                        .then(() => { console.log("table created"); })
                 })
         }
+
         document.addEventListener('DOMContentLoaded', refresh);
 
         function refresh() {
@@ -85,7 +86,7 @@
         }
         function deletetable() {
             fetch(`/api/delete_table`, { method: 'DELETE' })
-                .then(() => { return console.log("table deleted") })
+                .then(() => { return console.log("table deleted")  })
         }
 
         function add_student() {
